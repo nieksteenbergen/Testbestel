@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍟 bas-patat</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #f59e0b; --orange: #ea580c;
+    --deep: #7c2d12; --cream: #fffbeb;
+    --card: #fff7ed; --text: #1c1917;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream); min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 10% 20%, #fde68a55 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, #fed7aa55 0%, transparent 40%);
+  }
+  h1,h2,h3,h4 { font-family: 'Lilita One', cursive; }
+
+  .fry-header {
+    background: linear-gradient(135deg,#ea580c,#f59e0b);
+    color:white; padding:1.5rem 1rem; text-align:center;
+    box-shadow:0 4px 20px #ea580c55; position:relative; overflow:hidden;
+  }
+  .fry-header::before {
+    content:'🍟🍟🍟🍟🍟🍟🍟🍟🍟🍟';
+    position:absolute; font-size:1.4rem; top:4px; left:0; right:0;
+    opacity:.18; letter-spacing:4px; white-space:nowrap; overflow:hidden;
+  }
+  .fry-header h1 { font-size:2.4rem; text-shadow:2px 2px 0 #7c2d12; }
+  .fry-header p  { font-size:1rem; opacity:.92; margin-top:2px; }
+
+  .main { max-width:560px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+
+  .card {
+    background:var(--card); border-radius:1.25rem;
+    box-shadow:0 4px 24px #f59e0b22,0 1px 4px #ea580c11;
+    padding:1.5rem; margin-bottom:1.5rem; border:2px solid #fde68a;
+  }
+  .card > h2 { color:var(--orange); font-size:1.3rem; margin-bottom:1rem; }
+
+  .status-banner {
+    border-radius:1.1rem; padding:1.3rem 1.2rem;
+    text-align:center; font-weight:800; font-size:1rem;
+    margin-bottom:1.5rem; border:2px solid;
+  }
+  .status-banner.waiting { background:#fef9c3; border-color:#fde047; color:#713f12; }
+  .status-banner.sent    { background:#fee2e2; border-color:#fca5a5; color:#7f1d1d; }
+  .status-banner .banner-icon  { font-size:2rem; display:block; margin-bottom:.4rem; }
+  .status-banner .banner-title { font-family:'Lilita One',cursive; font-size:1.15rem; }
+  .status-banner .banner-sub   { font-size:.88rem; opacity:.8; margin-top:.3rem; font-weight:600; }
+
+  input[type="text"], input[type="password"] {
+    width:100%; padding:.75rem 1rem;
+    border-radius:.75rem; border:2px solid #fde68a;
+    background:white; font-family:'Nunito',sans-serif;
+    font-size:1rem; outline:none; transition:border-color .2s;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus { border-color:var(--gold); }
+
+  .search-wrap { position:relative; margin-bottom:1rem; }
+  .search-wrap input { padding-left:2.5rem; }
+  .search-icon { position:absolute; left:.85rem; top:50%; transform:translateY(-50%); font-size:1.1rem; pointer-events:none; }
+
+  .cat-header {
+    display:flex; align-items:center; gap:.5rem;
+    margin:1.1rem 0 .5rem; color:var(--deep); font-size:1rem;
+  }
+  .cat-header span.line { flex:1; height:1px; background:#fde68a; }
+
+  .menu-item {
+    display:flex; align-items:center; justify-content:space-between;
+    background:white; border:2px solid #fde68a; border-radius:.9rem;
+    padding:.6rem .9rem; margin-bottom:.45rem;
+    cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .menu-item:hover    { border-color:var(--gold); background:#fffbeb; }
+  .menu-item.selected { border-color:var(--orange); background:#fff7ed; box-shadow:0 2px 10px #ea580c22; }
+  .item-label { font-weight:700; color:var(--text); font-size:.93rem; }
+  .item-emoji { font-size:1.2rem; margin-right:.45rem; flex-shrink:0; }
+  .item-price { color:var(--orange); font-weight:800; font-size:.9rem; }
+
+  .qty-ctrl { display:flex; align-items:center; gap:.4rem; }
+  .qty-btn {
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid var(--gold); background:white;
+    font-size:1rem; font-weight:800; cursor:pointer; color:var(--orange);
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s; line-height:1; flex-shrink:0;
+  }
+  .qty-btn:hover { background:#fde68a; }
+  .qty-num { font-weight:800; min-width:18px; text-align:center; color:var(--text); font-size:.95rem; }
+
+  .total-bar {
+    background:linear-gradient(90deg,#f59e0b,#ea580c); color:white;
+    border-radius:1rem; padding:.9rem 1.2rem;
+    display:flex; justify-content:space-between; align-items:center;
+    font-weight:800; font-size:1.1rem;
+    margin-top:1rem; box-shadow:0 2px 12px #f59e0b44;
+  }
+
+  .basket-preview {
+    background:#fff7ed; border:2px solid #fed7aa;
+    border-radius:.9rem; padding:.75rem 1rem; margin-top:.75rem;
+  }
+  .basket-preview h4 { color:var(--deep); font-size:.9rem; margin-bottom:.4rem; }
+  .basket-line { display:flex; justify-content:space-between; font-size:.88rem; color:var(--text); padding:.15rem 0; }
+  .basket-line .bl-name  { color:#78716c; }
+  .basket-line .bl-price { color:var(--orange); font-weight:700; }
+
+  .btn-submit {
+    width:100%; background:linear-gradient(135deg,#ea580c,#f59e0b);
+    color:white; font-family:'Lilita One',cursive;
+    font-size:1.2rem; border:none; border-radius:1rem;
+    padding:.9rem; cursor:pointer; margin-top:1rem;
+    box-shadow:0 4px 14px #ea580c44;
+    transition:transform .1s,box-shadow .1s; letter-spacing:.5px;
+  }
+  .btn-submit:hover    { transform:translateY(-2px); box-shadow:0 6px 18px #ea580c55; }
+  .btn-submit:active   { transform:translateY(0); }
+  .btn-submit:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+
+  .btn-danger {
+    background:#dc2626; color:white; border:none;
+    border-radius:.75rem; padding:.65rem 1.2rem;
+    font-family:'Nunito',sans-serif; font-weight:700;
+    cursor:pointer; transition:background .15s; font-size:.95rem;
+  }
+  .btn-danger:hover { background:#b91c1c; }
+
+  .btn-export {
+    background:#f59e0b; color:#1c1917; border:none;
+    border-radius:.75rem; padding:.65rem 1.2rem;
+    font-family:'Nunito',sans-serif; font-weight:700;
+    cursor:pointer; transition:background .15s; font-size:.95rem;
+  }
+  .btn-export:hover { background:#d97706; }
+
+  .btn-row { display:flex; gap:.75rem; margin-top:1.2rem; flex-wrap:wrap; }
+
+  .status-btn {
+    width:100%; border:2px solid; border-radius:1rem;
+    padding:.8rem 1rem; font-family:'Nunito',sans-serif;
+    font-weight:700; font-size:.88rem; cursor:pointer;
+    margin-bottom:.55rem; text-align:left;
+    display:flex; align-items:center; gap:.7rem;
+    transition:all .15s; line-height:1.3;
+  }
+  .status-btn .s-icon { font-size:1.4rem; flex-shrink:0; }
+  .status-btn.active  { box-shadow:0 0 0 3px #f59e0b; }
+  .status-btn.s-waiting { background:#fef9c3; border-color:#fde047; color:#713f12; }
+  .status-btn.s-waiting:hover,.status-btn.s-waiting.active { background:#fef08a; }
+  .status-btn.s-open  { background:#dcfce7; border-color:#4ade80; color:#14532d; }
+  .status-btn.s-open:hover,.status-btn.s-open.active { background:#bbf7d0; }
+  .status-btn.s-sent  { background:#fee2e2; border-color:#fca5a5; color:#7f1d1d; }
+  .status-btn.s-sent:hover,.status-btn.s-sent.active { background:#fecaca; }
+
+  .manager-toggle { text-align:center; margin-bottom:1rem; }
+  .manager-toggle button {
+    background:none; border:none; font-size:.8rem; color:#d97706;
+    cursor:pointer; opacity:.45; font-family:'Nunito',sans-serif;
+  }
+  .manager-toggle button:hover { opacity:1; }
+
+  .manager-card {
+    background:#1c1917; color:#fef3c7;
+    border-radius:1.25rem; padding:1.5rem;
+    margin-bottom:1.5rem; border:2px solid #f59e0b;
+  }
+  .manager-card h2 { color:#f59e0b; font-size:1.4rem; margin-bottom:1rem; }
+  .manager-card h3 { color:#fbbf24; font-size:1rem; margin:1.1rem 0 .5rem; }
+
+  .pin-card {
+    background:#1c1917; color:#fef3c7;
+    border-radius:1.25rem; padding:1.5rem;
+    margin-bottom:1.5rem; border:2px solid #f59e0b; text-align:center;
+  }
+  .pin-card h2 { color:#f59e0b; font-size:1.4rem; margin-bottom:.5rem; }
+  .pin-card p  { font-size:.9rem; color:#d6d3d1; margin-bottom:1rem; }
+  .pin-input {
+    width:100%; max-width:200px; padding:.75rem;
+    border-radius:.75rem; border:2px solid #f59e0b;
+    background:#292524; color:white;
+    font-family:'Nunito',sans-serif; font-size:1.5rem;
+    text-align:center; letter-spacing:.4rem; outline:none;
+    margin:0 auto 1rem; display:block;
+  }
+  .pin-input:focus { border-color:#fbbf24; }
+  .pin-error { color:#f87171; font-size:.9rem; margin-top:.4rem; min-height:1.2rem; }
+  .btn-pin {
+    background:linear-gradient(135deg,#ea580c,#f59e0b);
+    color:white; border:none; border-radius:.75rem;
+    padding:.75rem 2rem; font-family:'Lilita One',cursive;
+    font-size:1.1rem; cursor:pointer;
+    box-shadow:0 4px 14px #ea580c44; transition:transform .1s;
+  }
+  .btn-pin:hover { transform:translateY(-2px); }
+
+  table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  th { background:#292524; color:#f59e0b; font-family:'Lilita One',cursive; padding:.5rem .75rem; text-align:left; }
+  td { padding:.5rem .75rem; border-bottom:1px solid #292524; color:#fef3c7; }
+  tr:last-child td { border-bottom:none; }
+  tr:nth-child(even) td { background:#292524; }
+
+  .grand-row { display:flex; justify-content:space-between; padding:.28rem 0; font-size:.92rem; }
+  .grand-row span:last-child { color:#fbbf24; font-weight:800; }
+  .owes-row { display:flex; justify-content:space-between; padding:.28rem 0; }
+  .owes-row .name { color:#fed7aa; }
+  .owes-row .amt  { color:#fbbf24; font-weight:800; }
+  .grand-total-line {
+    display:flex; justify-content:space-between;
+    margin-top:1rem; padding-top:.75rem;
+    border-top:2px solid #f59e0b;
+    font-family:'Lilita One',cursive;
+    font-size:1.2rem; color:#f59e0b;
+  }
+
+  .mgr-cat {
+    color:#d97706; font-size:.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em;
+    margin-top:.6rem; margin-bottom:.1rem;
+  }
+
+  .empty-state { text-align:center; color:#a8a29e; padding:1rem 0; font-size:.95rem; }
+  .success-msg { text-align:center; padding:1.5rem; font-size:1.1rem; color:#15803d; font-weight:700; }
+
+  .logout-link {
+    background:none; border:none; color:#a8a29e;
+    font-size:.8rem; cursor:pointer;
+    font-family:'Nunito',sans-serif; text-decoration:underline;
+    display:inline-block;
+  }
+  .logout-link:hover { color:#fbbf24; }
+
+  /* Custom item */
+  .custom-item-box {
+    background: white; border: 2px dashed #f59e0b;
+    border-radius: 1rem; padding: 1rem; margin-top: 1rem;
+  }
+  .custom-item-box h4 { color: var(--deep); font-size: .95rem; margin-bottom: .6rem; }
+  .custom-row { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+  .custom-row input[type="text"] { flex: 1; padding: .6rem .8rem; font-size: .93rem; }
+  .btn-add-custom {
+    background: var(--orange); color: white; border: none;
+    border-radius: .75rem; padding: .6rem 1rem;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    cursor: pointer; white-space: nowrap; font-size: .93rem;
+    transition: background .15s; flex-shrink: 0;
+  }
+  .btn-add-custom:hover { background: var(--deep); }
+  .btn-add-custom:disabled { opacity: .4; cursor: not-allowed; }
+
+  .custom-added {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fff7ed; border: 1px solid #fed7aa;
+    border-radius: .7rem; padding: .45rem .75rem;
+    margin-bottom: .35rem; font-size: .9rem;
+  }
+  .custom-added .ca-name { color: var(--text); font-weight: 600; }
+  .custom-added .ca-price { color: #78716c; font-size: .85rem; font-style: italic; }
+  .ca-remove {
+    background: none; border: none; cursor: pointer;
+    color: #dc2626; font-size: 1rem; padding: 0 .2rem; line-height: 1;
+  }
+
+  /* Manager: pending price inputs */
+  .price-pending {
+    display: flex; align-items: center; gap: .4rem;
+    background: #292524; border-radius: .5rem; padding: .3rem .5rem;
+  }
+  .price-pending span { color: #f59e0b; font-size: .8rem; font-weight: 700; }
+  .price-pending input {
+    width: 72px; padding: .3rem .5rem;
+    border-radius: .4rem; border: 1px solid #f59e0b;
+    background: #1c1917; color: white;
+    font-family: 'Nunito', sans-serif; font-size: .88rem;
+    outline: none; text-align: right;
+  }
+  .price-pending input:focus { border-color: #fbbf24; }
+  .btn-set-price {
+    background: #f59e0b; color: #1c1917; border: none;
+    border-radius: .4rem; padding: .3rem .6rem;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: .8rem; cursor: pointer;
+  }
+  .btn-set-price:hover { background: #d97706; }
+
+  .custom-tag {
+    display: inline-block; background: #f59e0b22;
+    color: #d97706; font-size: .72rem; font-weight: 700;
+    border-radius: .3rem; padding: .1rem .35rem; margin-left: .3rem;
+    vertical-align: middle; text-transform: uppercase; letter-spacing: .04em;
+  }
+
+  .copy-toast {
+    position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
+    background:#15803d; color:white;
+    padding:.6rem 1.4rem; border-radius:2rem;
+    font-weight:700; font-size:.95rem;
+    box-shadow:0 4px 16px #0005; pointer-events:none; z-index:999;
+  }
+
+  @media(max-width:400px){
+    .fry-header h1 { font-size:1.9rem; }
+    .card,.manager-card,.pin-card { padding:1rem; }
+  }
+</style>
+</head>
+<body x-data="fryApp()" x-init="init()">
+
+<div class="fry-header">
+  <h1>🍟 bas-patat</h1>
+  <p>Vrijdag = patat dag 🧡</p>
+</div>
+
+<div class="main">
+
+  <!-- Status banners -->
+  <div class="status-banner waiting" x-show="shopStatus === 'waiting'">
+    <span class="banner-icon">⏳</span>
+    <div class="banner-title">The fryers aren't hot yet!</div>
+    <div class="banner-sub">Waiting for Bas to open the list…</div>
+  </div>
+  <div class="status-banner sent" x-show="shopStatus === 'sent'">
+    <span class="banner-icon">📨</span>
+    <div class="banner-title">Order Sent to Plaza</div>
+    <div class="banner-sub">No more orders can be accepted through the app.<br>Contact Bas for emergency snack requests!</div>
+  </div>
+
+  <!-- ORDER FORM -->
+  <div class="card" x-show="shopStatus === 'open' && !submitted">
+    <h2>📋 Jouw bestelling</h2>
+
+    <div style="margin-bottom:1rem;">
+      <label style="font-weight:700;color:#7c2d12;display:block;margin-bottom:.4rem;">Je naam</label>
+      <input type="text" x-model="name" placeholder="bijv. Jan, Sophie, Marko…" maxlength="40">
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" x-model="search" placeholder="Zoek een snack…">
+    </div>
+
+    <template x-for="cat in filteredCategories" :key="cat.name">
+      <div>
+        <div class="cat-header">
+          <span x-text="cat.emoji"></span>
+          <strong x-text="cat.name"></strong>
+          <span class="line"></span>
+        </div>
+        <template x-for="item in cat.items" :key="item.id">
+          <div class="menu-item" :class="{ selected: qty(item.id) > 0 }" @click.self="toggle(item.id)">
+            <div style="display:flex;align-items:center;flex:1;min-width:0;" @click="toggle(item.id)">
+              <span class="item-emoji" x-text="item.emoji"></span>
+              <div style="min-width:0;">
+                <div class="item-label" x-text="item.name"></div>
+                <div class="item-price" x-text="'€' + item.price.toFixed(2)"></div>
+              </div>
+            </div>
+            <div class="qty-ctrl" x-show="qty(item.id) > 0" @click.stop>
+              <button class="qty-btn" @click="dec(item.id)">−</button>
+              <span class="qty-num" x-text="qty(item.id)"></span>
+              <button class="qty-btn" @click="inc(item.id)">+</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </template>
+
+    <p class="empty-state" x-show="filteredCategories.length === 0">
+      Geen resultaten voor "<span x-text="search"></span>" 🤷
+    </p>
+
+    <div class="basket-preview" x-show="basketItems.length > 0">
+      <h4>🧺 Jouw selectie</h4>
+      <template x-for="bi in basketItems" :key="bi.id">
+        <div class="basket-line">
+          <span class="bl-name" x-text="bi.qty + '× ' + bi.name"></span>
+          <span class="bl-price" x-text="'€' + (bi.qty * bi.price).toFixed(2)"></span>
+        </div>
+      </template>
+    </div>
+
+    <div class="total-bar" x-show="orderTotal > 0">
+      <span>Jouw totaal</span>
+      <span x-text="'€' + orderTotal.toFixed(2)"></span>
+    </div>
+
+    <button class="btn-submit" @click="submitOrder()" :disabled="!name.trim() || orderTotal === 0">
+      🍟 Bestelling plaatsen
+    </button>
+  </div>
+
+  <!-- Success -->
+  <div class="card" x-show="submitted">
+    <div class="success-msg">
+      <div style="font-size:3rem">🎉</div>
+      <div style="margin-top:.5rem" x-text="'Bestelling opgeslagen voor ' + submittedName + '!'"></div>
+      <div style="color:#78716c;font-weight:600;margin-top:.4rem" x-text="'Totaal: €' + submittedTotal.toFixed(2)"></div>
+      <button class="btn-submit" style="margin-top:1.2rem;max-width:220px;display:inline-block;" @click="resetForm()">
+        + Nieuwe bestelling
+      </button>
+    </div>
+  </div>
+
+  <!-- Manager toggle -->
+  <div class="manager-toggle">
+    <button @click="toggleManager()" x-text="managerOpen ? '▲ Sluiten' : '🔒 Bas only'"></button>
+  </div>
+
+  <!-- PIN login -->
+  <div class="pin-card" x-show="managerOpen && !managerAuthed" x-transition>
+    <h2>🔐 Manager Login</h2>
+    <p>Voer de beheerderscode in</p>
+    <input class="pin-input" type="password" inputmode="numeric" maxlength="6"
+      x-model="pinInput" placeholder="······" @keydown.enter="checkPin()">
+    <div class="pin-error" x-text="pinError"></div>
+    <button class="btn-pin" @click="checkPin()">Unlock 🔓</button>
+  </div>
+
+  <!-- MANAGER PANEL -->
+  <div class="manager-card" x-show="managerOpen && managerAuthed" x-transition>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="margin-bottom:0;">🧾 Manager Mode</h2>
+      <button class="logout-link" @click="logout()">🔒 Log out</button>
+    </div>
+
+    <h3>📡 Bestelstatus</h3>
+    <p style="font-size:.85rem;color:#a8a29e;margin-bottom:.75rem;">Wat zien je collega's op de app?</p>
+
+    <button class="status-btn s-waiting" :class="{ active: shopStatus==='waiting' }" @click="setStatus('waiting')">
+      <span class="s-icon">⏳</span>
+      <span>The fryers aren't hot yet!<br><span style="font-weight:600;opacity:.75;">Waiting for Bas to open the list…</span></span>
+    </button>
+    <button class="status-btn s-open" :class="{ active: shopStatus==='open' }" @click="setStatus('open')">
+      <span class="s-icon">✅</span>
+      <span>Orders Open<br><span style="font-weight:600;opacity:.75;">Collega's kunnen nu bestellen</span></span>
+    </button>
+    <button class="status-btn s-sent" :class="{ active: shopStatus==='sent' }" @click="setStatus('sent')">
+      <span class="s-icon">📨</span>
+      <span>Order Sent to Plaza<br><span style="font-weight:600;opacity:.75;">Geen bestellingen meer — contact Bas voor noodgevallen</span></span>
+    </button>
+
+    <h3 style="margin-top:1.5rem;">📋 Alle bestellingen</h3>
+
+    <template x-if="orders.length === 0">
+      <p class="empty-state">Nog geen bestellingen. Zeg het je collega's! 🍟</p>
+    </template>
+
+    <template x-if="orders.length > 0">
+      <div>
+        <table>
+          <thead><tr><th>Naam</th><th>Items</th><th>Totaal</th></tr></thead>
+          <tbody>
+            <template x-for="o in orders" :key="o.id">
+              <tr>
+                <td x-text="o.name"></td>
+                <td x-text="orderSummary(o)"></td>
+                <td x-text="'€' + o.total.toFixed(2)"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+
+        <h3>🛒 Totaal te bestellen</h3>
+        <template x-for="cat in grandListByCategory" :key="cat.name">
+          <div x-show="cat.items.length > 0" style="margin-bottom:.4rem;">
+            <div class="mgr-cat" x-text="cat.emoji + ' ' + cat.name"></div>
+            <template x-for="item in cat.items" :key="item.id">
+              <div class="grand-row">
+                <span x-text="item.name"></span>
+                <span x-text="item.qty + '×'"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <h3>💸 Wie betaalt wat</h3>
+        <template x-for="o in orders" :key="'owe-'+o.id">
+          <div class="owes-row">
+            <span class="name" x-text="o.name"></span>
+            <span class="amt"  x-text="'€' + o.total.toFixed(2)"></span>
+          </div>
+        </template>
+
+        <div class="grand-total-line">
+          <span>Totaal</span>
+          <span x-text="'€' + grandTotal.toFixed(2)"></span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-export" @click="exportText()">📋 Exporteer tekst</button>
+          <button class="btn-danger" @click="clearAll()">🗑 Alles wissen</button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+</div>
+
+<div class="copy-toast" x-show="toast" x-text="toastMsg" x-transition style="display:none;"></div>
+
+<script>
+const MANAGER_PIN = '551473';
+
+const CATEGORIES = [
+  { name:'Patat / Fries',      emoji:'🍟' },
+  { name:'Snacks',             emoji:'🌭' },
+  { name:'Broodjes / Burgers', emoji:'🍔' },
+  { name:'Drinken',            emoji:'🥤' },
+];
+
+const MENU = [
+  // Patat / Fries
+  { id:'patat_zonder',       name:'Patat zonder',          cat:'Patat / Fries', price:3.00 },
+  { id:'patat_mayo',         name:'Patat mayo',            cat:'Patat / Fries', price:3.50 },
+  { id:'patat_mayo_ui',      name:'Patat mayo met ui',     cat:'Patat / Fries', price:3.50 },
+  { id:'patat_curry',        name:'Patat curry',           cat:'Patat / Fries', price:3.50 },
+  { id:'patat_curry_mayo',   name:'Patat curry mayo',      cat:'Patat / Fries', price:3.60 },
+  { id:'patat_joppie',       name:'Patat joppie',          cat:'Patat / Fries', price:3.50 },
+  { id:'patat_bbq',          name:'Patat BBQ',             cat:'Patat / Fries', price:3.50 },
+  { id:'patat_sambal',       name:'Patat sambal',          cat:'Patat / Fries', price:3.70 },
+  { id:'patat_oorlog',       name:'Patat oorlog',          cat:'Patat / Fries', price:3.70 },
+  { id:'patat_oorlog_ui',    name:'Patat oorlog met ui',   cat:'Patat / Fries', price:3.50 },
+  { id:'patat_speciaal',     name:'Patat speciaal',        cat:'Patat / Fries', price:3.60 },
+  { id:'patat_spec_zui',     name:'Patat speciaal z/ui',   cat:'Patat / Fries', price:3.40 },
+  { id:'patat_pinda',        name:'Patat pinda',           cat:'Patat / Fries', price:3.80 },
+  { id:'grote_patat',        name:'Grote patat zonder',    cat:'Patat / Fries', price:3.80 },
+  { id:'ras_mayo',           name:'Ras mayo',              cat:'Patat / Fries', price:3.50 },
+  { id:'ras_mayo_ui',        name:'Ras mayo met ui',       cat:'Patat / Fries', price:3.50 },
+  { id:'ras_joppie',         name:'Ras joppie',            cat:'Patat / Fries', price:3.50 },
+  { id:'ras_oorlog',         name:'Ras oorlog',            cat:'Patat / Fries', price:3.50 },
+  { id:'ras_pinda',          name:'Ras pinda',             cat:'Patat / Fries', price:3.80 },
+  { id:'patat_stoofvlees',   name:'Patat stoofvlees',      cat:'Patat / Fries', price:10.25 },
+
+  // Snacks
+  { id:'frikandel',          name:'Frikandel',             cat:'Snacks', price:2.50 },
+  { id:'frik_mayo',          name:'Frikandel mayo',        cat:'Snacks', price:3.00 },
+  { id:'frik_curry',         name:'Frikandel curry',       cat:'Snacks', price:3.20 },
+  { id:'frik_speciaal',      name:'Frikandel speciaal',    cat:'Snacks', price:3.10 },
+  { id:'frik_xl_spec',       name:'Frikandel XL speciaal', cat:'Snacks', price:4.00 },
+  { id:'xxl_frik',           name:'XXL frikandel',         cat:'Snacks', price:3.40 },
+  { id:'xxl_frik_curry',     name:'XXL frikandel curry',   cat:'Snacks', price:4.10 },
+  { id:'kip_frik',           name:'Kip frikandel',         cat:'Snacks', price:2.40 },
+  { id:'kroket',             name:'Kroket',                cat:'Snacks', price:2.50 },
+  { id:'kroket_most',        name:'Kroket mosterd',        cat:'Snacks', price:2.60 },
+  { id:'kalfs_kroket',       name:'Kalfsvlees kroket',     cat:'Snacks', price:2.70 },
+  { id:'runds_kroket',       name:'Rundsvlees kroket',     cat:'Snacks', price:2.70 },
+  { id:'goulash_kroket',     name:'Goulash kroket',        cat:'Snacks', price:2.80 },
+  { id:'sate_kroket',        name:'Saté kroket',           cat:'Snacks', price:2.80 },
+  { id:'kaassouflee',        name:'Kaassoufflé',           cat:'Snacks', price:2.90 },
+  { id:'hamkaas_souflee',    name:'Ham-kaas soufflé',      cat:'Snacks', price:3.00 },
+  { id:'nasischijf',         name:'Nasischijf',            cat:'Snacks', price:3.00 },
+  { id:'bamischijf',         name:'Bamischijf',            cat:'Snacks', price:3.10 },
+  { id:'kipkorn',            name:'Kipkorn',               cat:'Snacks', price:2.85 },
+  { id:'gehaktbal',          name:'Gehaktbal',             cat:'Snacks', price:3.95 },
+  { id:'eierbal',            name:'Eierbal',               cat:'Snacks', price:3.50 },
+  { id:'berehap',            name:'Berehap pinda',         cat:'Snacks', price:4.20 },
+  { id:'boerenbrok',         name:'Boerenbrok pinda',      cat:'Snacks', price:4.20 },
+  { id:'picanto',            name:'Picanto',               cat:'Snacks', price:3.20 },
+  { id:'loempidel',          name:'Loempia del',           cat:'Snacks', price:3.30 },
+  { id:'shoarma_rol',        name:'Shoarma rol',           cat:'Snacks', price:3.50 },
+  { id:'smulrol',            name:'Smulrol',               cat:'Snacks', price:3.40 },
+
+  // Broodjes / Burgers
+  { id:'br_kroket',          name:'Broodje kroket',              cat:'Broodjes / Burgers', price:3.25 },
+  { id:'br_kroket_mayo',     name:'Broodje kroket met mayo',     cat:'Broodjes / Burgers', price:3.75 },
+  { id:'br_gehaktbal',       name:'Broodje gehaktbal',           cat:'Broodjes / Burgers', price:4.70 },
+  { id:'br_gehaktbal_most',  name:'Broodje gehaktbal met most',  cat:'Broodjes / Burgers', price:4.80 },
+  { id:'br_hamburger',       name:'Broodje hamburger',           cat:'Broodjes / Burgers', price:4.40 },
+  { id:'br_hamb_spec',       name:'Broodje hamburger speciaal',  cat:'Broodjes / Burgers', price:5.00 },
+  { id:'br_kipburger',       name:'Broodje kipburger',           cat:'Broodjes / Burgers', price:4.40 },
+  { id:'br_cheese',          name:'Broodje cheeseburger',        cat:'Broodjes / Burgers', price:4.00 },
+  { id:'br_mexicano',        name:'Broodje mexicano pinda',      cat:'Broodjes / Burgers', price:4.75 },
+  { id:'cheeseburger',       name:'Cheeseburger',                cat:'Broodjes / Burgers', price:4.20 },
+  { id:'kipburger',          name:'Kipburger',                   cat:'Broodjes / Burgers', price:4.60 },
+  { id:'crispy_chicken',     name:'Crispy chicken burger',       cat:'Broodjes / Burgers', price:4.90 },
+  { id:'joppie_burger',      name:'Joppie burger',               cat:'Broodjes / Burgers', price:3.50 },
+
+  // Drinken
+  { id:'cola',               name:'Cola',                        cat:'Drinken', price:2.50 },
+];
+
+// Assign emoji per category
+const CAT_EMOJI = {
+  'Patat / Fries': '🍟',
+  'Snacks': '🌭',
+  'Broodjes / Burgers': '🍔',
+  'Drinken': '🥤',
+};
+MENU.forEach(i => i.emoji = CAT_EMOJI[i.cat] || '🍴');
+
+function fryApp() {
+  return {
+    menu: MENU,
+    categories: CATEGORIES,
+    name: '',
+    quantities: {},
+    orders: [],
+    submitted: false,
+    submittedName: '',
+    submittedTotal: 0,
+    search: '',
+    shopStatus: 'waiting',
+    managerOpen: false,
+    managerAuthed: false,
+    pinInput: '',
+    pinError: '',
+    toast: false,
+    toastMsg: '',
+
+    init() {
+      const so = localStorage.getItem('baspatat_orders');
+      if (so) this.orders = JSON.parse(so);
+      const ss = localStorage.getItem('baspatat_status');
+      if (ss) this.shopStatus = ss;
+      this.menu.forEach(i => { this.quantities[i.id] = 0; });
+    },
+
+    get filteredCategories() {
+      const q = this.search.toLowerCase().trim();
+      return this.categories.map(cat => ({
+        ...cat,
+        items: this.menu.filter(i => i.cat === cat.name && (!q || i.name.toLowerCase().includes(q)))
+      })).filter(c => c.items.length > 0);
+    },
+
+    get basketItems() {
+      return this.menu.filter(i => (this.quantities[i.id] || 0) > 0)
+        .map(i => ({ ...i, qty: this.quantities[i.id] }));
+    },
+
+    qty(id)    { return this.quantities[id] || 0; },
+    inc(id)    { this.quantities[id] = (this.quantities[id] || 0) + 1; },
+    dec(id)    { if (this.quantities[id] > 0) this.quantities[id]--; },
+    toggle(id) { if (!this.quantities[id]) this.quantities[id] = 1; },
+
+    get orderTotal() {
+      return this.menu.reduce((s,i) => s + i.price * (this.quantities[i.id]||0), 0);
+    },
+
+    submitOrder() {
+      if (!this.name.trim() || this.orderTotal === 0) return;
+      const items = this.menu
+        .filter(i => this.quantities[i.id] > 0)
+        .map(i => ({ id:i.id, name:i.name, cat:i.cat, qty:this.quantities[i.id], price:i.price }));
+      const order = {
+        id: Date.now(), name: this.name.trim(),
+        items, total: this.orderTotal,
+        time: new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})
+      };
+      this.orders.push(order);
+      localStorage.setItem('baspatat_orders', JSON.stringify(this.orders));
+      this.submittedName = order.name;
+      this.submittedTotal = order.total;
+      this.submitted = true;
+    },
+
+    resetForm() {
+      this.name = ''; this.search = '';
+      this.menu.forEach(i => this.quantities[i.id] = 0);
+      this.submitted = false;
+    },
+
+    orderSummary(o) {
+      return o.items.map(i => `${i.qty}× ${i.name}`).join(', ');
+    },
+
+    grandQty(id) {
+      return this.orders.reduce((s,o) => {
+        const it = o.items.find(i => i.id === id);
+        return s + (it ? it.qty : 0);
+      }, 0);
+    },
+
+    get grandListByCategory() {
+      return this.categories.map(cat => ({
+        ...cat,
+        items: this.menu
+          .filter(i => i.cat === cat.name && this.grandQty(i.id) > 0)
+          .map(i => ({ ...i, qty: this.grandQty(i.id) }))
+      }));
+    },
+
+    get grandTotal() {
+      return this.orders.reduce((s,o) => s + o.total, 0);
+    },
+
+    setStatus(s) {
+      this.shopStatus = s;
+      localStorage.setItem('baspatat_status', s);
+      const labels = { waiting:'⏳ Status: Wachten', open:'✅ Status: Open', sent:'📨 Status: Verstuurd' };
+      this.showToast(labels[s]);
+    },
+
+    toggleManager() {
+      this.managerOpen = !this.managerOpen;
+      if (!this.managerOpen) { this.pinInput=''; this.pinError=''; }
+    },
+    checkPin() {
+      if (this.pinInput === MANAGER_PIN) {
+        this.managerAuthed = true; this.pinError = ''; this.pinInput = '';
+      } else {
+        this.pinError = '❌ Verkeerde code. Probeer opnieuw.'; this.pinInput = '';
+      }
+    },
+    logout() {
+      this.managerAuthed = false; this.managerOpen = false;
+      this.pinInput = ''; this.pinError = '';
+    },
+
+    exportText() {
+      const lines = [
+        '🍟 BAS-PATAT BESTELLINGEN', '=========================', '',
+        '📋 BESTELLINGEN:',
+        ...this.orders.map(o => `• ${o.name}: ${this.orderSummary(o)} → €${o.total.toFixed(2)}`),
+        '', '🛒 TOTAAL TE BESTELLEN:'
+      ];
+      this.grandListByCategory.forEach(cat => {
+        if (cat.items.length > 0) {
+          lines.push(`\n${cat.emoji} ${cat.name}:`);
+          cat.items.forEach(i => lines.push(`  • ${i.name}: ${i.qty}×`));
+        }
+      });
+      lines.push('', '💸 WIE BETAALT WAT:',
+        ...this.orders.map(o => `• ${o.name}: €${o.total.toFixed(2)}`),
+        '', `TOTAAL: €${this.grandTotal.toFixed(2)}`
+      );
+      const text = lines.join('\n');
+      navigator.clipboard.writeText(text).then(() => this.showToast('✅ Gekopieerd!')).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        this.showToast('✅ Gekopieerd!');
+      });
+    },
+
+    clearAll() {
+      if (!confirm('Alle bestellingen wissen? Dit kan niet ongedaan worden gemaakt.')) return;
+      this.orders = [];
+      localStorage.removeItem('baspatat_orders');
+      this.showToast('🗑 Alles gewist!');
+    },
+
+    showToast(msg) {
+      this.toastMsg = msg; this.toast = true;
+      setTimeout(() => this.toast = false, 2500);
+    }
+  };
+}
+</script>
+</body>
+</html>
